@@ -1,0 +1,3 @@
+C:/Users/prash/AndroidStudioProjects/FirewallApp/app/.cxx/Debug/1695t2m5/x86/CMakeFiles/firewallapp.dir
+C:/Users/prash/AndroidStudioProjects/FirewallApp/app/.cxx/Debug/1695t2m5/x86/CMakeFiles/edit_cache.dir
+C:/Users/prash/AndroidStudioProjects/FirewallApp/app/.cxx/Debug/1695t2m5/x86/CMakeFiles/rebuild_cache.dir

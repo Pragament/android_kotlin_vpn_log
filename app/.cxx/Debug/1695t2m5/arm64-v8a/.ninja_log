@@ -1,0 +1,4 @@
+# ninja log v5
+0	11	0	clean	67964659838da6b9
+1	1656	7738391719482012	CMakeFiles/firewallapp.dir/firewallapp.cpp.o	29b02d139c4e4391
+1662	1925	7738391721852455	C:/Users/prash/AndroidStudioProjects/android_kotlin_vpn_log/app/build/intermediates/cxx/Debug/1695t2m5/obj/arm64-v8a/libfirewallapp.so	d6b932808757b080
