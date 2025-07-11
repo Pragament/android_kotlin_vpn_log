@@ -1,0 +1,1 @@
+C:\Users\prash\AndroidStudioProjects\android_kotlin_vpn_log\app\build\intermediates\cxx\Debug\1695t2m5\obj\arm64-v8a

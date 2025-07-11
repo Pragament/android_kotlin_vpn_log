@@ -1,0 +1,3 @@
+C:/Users/prash/AndroidStudioProjects/android_kotlin_vpn_log/app/.cxx/RelWithDebInfo/693f4967/arm64-v8a/CMakeFiles/firewallapp.dir
+C:/Users/prash/AndroidStudioProjects/android_kotlin_vpn_log/app/.cxx/RelWithDebInfo/693f4967/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Users/prash/AndroidStudioProjects/android_kotlin_vpn_log/app/.cxx/RelWithDebInfo/693f4967/arm64-v8a/CMakeFiles/rebuild_cache.dir

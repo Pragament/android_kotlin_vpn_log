@@ -1,0 +1,1 @@
+C:\Users\prash\AndroidStudioProjects\android_kotlin_vpn_log\app\src\main\cpp\CMakeLists.txt

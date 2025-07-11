@@ -1,0 +1,7 @@
+[
+{
+  "directory": "C:/Users/prash/AndroidStudioProjects/FirewallApp/app/.cxx/Debug/1695t2m5/armeabi-v7a",
+  "command": "C:\\Users\\prash\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=armv7-none-linux-androideabi24 --sysroot=C:/Users/prash/AppData/Local/Android/Sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Dfirewallapp_EXPORTS -IC:/Users/prash/AndroidStudioProjects/FirewallApp/app/src/main/cpp/src/main/cpp/include/pcapplusplus -IC:/Users/prash/AndroidStudioProjects/FirewallApp/app/src/main/cpp/src/main/cpp/include/pcap -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -march=armv7-a -mthumb -Wformat -Werror=format-security   -fno-limit-debug-info  -fPIC -std=gnu++17 -o CMakeFiles\\firewallapp.dir\\firewallapp.cpp.o -c C:\\Users\\prash\\AndroidStudioProjects\\FirewallApp\\app\\src\\main\\cpp\\firewallapp.cpp",
+  "file": "C:\\Users\\prash\\AndroidStudioProjects\\FirewallApp\\app\\src\\main\\cpp\\firewallapp.cpp"
+}
+]

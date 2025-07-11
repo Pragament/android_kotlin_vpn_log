@@ -1,0 +1,1 @@
+C:\Users\prash\AndroidStudioProjects\android_kotlin_vpn_log\app\build\intermediates\cxx\RelWithDebInfo\693f4967\obj\arm64-v8a
