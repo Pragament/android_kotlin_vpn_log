@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalAtomicApi::class)
+
 package com.prashik.firewallapp
 
 import android.app.Notification
@@ -10,9 +12,12 @@ import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.compose.runtime.mutableStateListOf
 import com.google.gson.Gson
-import com.prashik.firewallapp.model.data.TrafficLogResponse
+import com.prashik.firewallapp.data.local.dao.BlockLogDao
+import com.prashik.firewallapp.data.local.modal.BlockLogEntity
+import com.prashik.firewallapp.data.local.modal.TrafficLogResponse
+import com.prashik.firewallapp.data.repository.PreferenceKeys
+import com.prashik.firewallapp.data.repository.dataStore
 import com.prashik.firewallapp.util.UidResolver
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -20,18 +25,30 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import org.koin.android.ext.android.get
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.net.DatagramPacket
 import java.net.DatagramSocket
+import java.net.InetAddress
+import java.net.InetSocketAddress
+import java.net.Socket
+import java.net.SocketTimeoutException
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.concurrent.atomics.AtomicBoolean
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.coroutines.coroutineContext
 
 class FirewallVpnService : VpnService() {
 
     companion object {
+        var isRunning = AtomicBoolean(false)
         private const val START_VPN_ACTION = "START_VPN_SERVICE"
         private const val STOP_VPN_ACTION = "STOP_VPN_SERVICE"
         private var vpnInterface: ParcelFileDescriptor? = null
@@ -39,11 +56,44 @@ class FirewallVpnService : VpnService() {
         private const val CHANNEL_ID = "vpn_channel"
         private const val NOTIFICATION_ID = 1
         private val vpnScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-        val trafficLogs = mutableStateListOf<TrafficLogResponse>()
-        private val udpSocketMap = ConcurrentHashMap<Int, DatagramSocket>()
+        private val tcpSocketMap = ConcurrentHashMap<String, Socket>()
     }
 
-    private lateinit var udpSocket: DatagramSocket
+    private var blockedAppCache = MutableStateFlow<Set<String>>(emptySet())
+
+    private var udpSocket: DatagramSocket? = null
+    private val logDao by lazy { get<BlockLogDao>() }
+
+    override fun onCreate() {
+        super.onCreate()
+
+        observeBlockedApps()
+    }
+
+    private fun observeBlockedApps() {
+        vpnScope.launch {
+            var lastBlockedApps: Set<String> = emptySet()
+            dataStore.data
+                .map { it[PreferenceKeys.BLOCKED_SET] ?: emptySet() }
+                .distinctUntilChanged()
+                .collect { newSet ->
+                    blockedAppCache.value = newSet
+                    if (isRunning.load() && newSet != lastBlockedApps) {
+                        lastBlockedApps = newSet
+                        Log.d("VPN", "Blocked apps changed: restarting VPN")
+                        restartVpn()
+                    }
+                }
+        }
+    }
+
+    private fun restartVpn() {
+        vpnScope.launch {
+            onDestroy()
+            delay(300)
+            startVpn()
+        }
+    }
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -57,7 +107,7 @@ class FirewallVpnService : VpnService() {
             }
 
             STOP_VPN_ACTION -> {
-                stopVpn()
+                onDestroy()
             }
 
             else -> {}
@@ -86,6 +136,24 @@ class FirewallVpnService : VpnService() {
         return notification.build()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        isRunning.store(false)
+        stopSelf()
+        vpnScope.cancel()
+        vpnScope.coroutineContext[Job]?.invokeOnCompletion {
+            try {
+                vpnInterface?.close()
+                vpnInterface = null
+                tcpSocketMap.values.forEach { it.close() }
+                tcpSocketMap.clear()
+                udpSocket?.close()
+            } catch (e: Exception) {
+                Log.e("VPN", "Error during VPN stop cleanup", e)
+            }
+        }
+    }
+
     private fun startVpn() {
         if (vpnInterface != null) return
 
@@ -94,14 +162,26 @@ class FirewallVpnService : VpnService() {
             .addAddress("10.0.0.2", 24)
             .addRoute("0.0.0.0", 0)
 
+        packageManager.getInstalledApplications(0).forEach { appInfo ->
+            if (!blockedAppCache.value.contains(appInfo.packageName)) {
+                try {
+                    builder.addDisallowedApplication(appInfo.packageName)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+
         vpnInterface = builder.establish()
+        isRunning.store(true)
         val inputStream = FileInputStream(vpnInterface?.fileDescriptor)
+        val outputStream = FileOutputStream(vpnInterface?.fileDescriptor)
         udpSocket = DatagramSocket()
-        udpSocket.broadcast = true
+        udpSocket?.broadcast = true
 
         vpnScope.launch {
             try {
-                readPackets(inputStream)
+                readPackets(inputStream, outputStream)
             } catch (e: Exception) {
                 if (e is CancellationException) {
                     Log.d("VPN", "VPN readPackets cancelled cleanly")
@@ -112,7 +192,7 @@ class FirewallVpnService : VpnService() {
         }
     }
 
-    private suspend fun readPackets(inputStream: FileInputStream) {
+    private suspend fun readPackets(inputStream: FileInputStream, outputStream: FileOutputStream) {
         val byteArray = ByteArray(32767)
 
         while (coroutineContext.isActive) {
@@ -137,7 +217,15 @@ class FirewallVpnService : VpnService() {
                             forwardUdpPacket(
                                 byteArray,
                                 length,
-                                trafficLogResponse
+                                trafficLogResponse,
+                                outputStream
+                            )
+                        } else if (trafficLogResponse.protocolByte == "TCP") {
+                            forwardTcpPacket(
+                                packetData = byteArray,
+                                length = length,
+                                trafficLogResponse,
+                                outputStream
                             )
                         }
                         val connectivityManager =
@@ -169,18 +257,9 @@ class FirewallVpnService : VpnService() {
 
                         trafficLogResponse.appName = appName
 
-
-                        val lastLog = trafficLogs.lastOrNull()
-
-                        if (trafficLogs.size > 50) trafficLogs.removeFirstOrNull()
-
-                        if (!trafficLogResponse.appName.contains("Unknown") &&
-                            (lastLog?.srcIp != trafficLogResponse.srcIp ||
-                                    lastLog.srcPort != trafficLogResponse.srcPort ||
-                                    lastLog.dstIp != trafficLogResponse.dstIp ||
-                                    lastLog.dstPort != trafficLogResponse.dstPort)
-                        ) {
-                            trafficLogs.add(trafficLogResponse)
+                        if (!trafficLogResponse.appName.contains("Unknown")) {
+                            logBlockedPacket(trafficLogResponse)
+                            logDao.deleteExtraLogs()
                         }
                     }
                 }
@@ -191,26 +270,29 @@ class FirewallVpnService : VpnService() {
         }
     }
 
-    private fun stopVpn() {
-        stopSelf()
-        vpnScope.cancel()
-        vpnScope.coroutineContext[Job]?.invokeOnCompletion {
-            try {
-                vpnInterface?.close()
-                vpnInterface = null
-                udpSocketMap.values.forEach { it.close() }
-                udpSocketMap.clear()
-                udpSocket.close()
-            } catch (e: Exception) {
-                Log.e("VPN", "Error during VPN stop cleanup", e)
-            }
+    private fun logBlockedPacket(
+        trafficLogResponse: TrafficLogResponse
+    ) {
+        CoroutineScope(Dispatchers.IO).launch {
+            logDao.insert(
+                blockLog = BlockLogEntity(
+                    appName = trafficLogResponse.appName,
+                    protocol = trafficLogResponse.protocolByte,
+                    srcIp = trafficLogResponse.srcIp,
+                    srcPort = trafficLogResponse.srcPort,
+                    dstIp = trafficLogResponse.dstIp,
+                    dstPort = trafficLogResponse.dstPort,
+                    timestamp = trafficLogResponse.timeStamp,
+                )
+            )
         }
     }
 
     private fun forwardUdpPacket(
         packetData: ByteArray,
         length: Int,
-        trafficLogResponse: TrafficLogResponse
+        trafficLogResponse: TrafficLogResponse,
+        vpnOutputStream: FileOutputStream
     ) {
         try {
             val dstIp = trafficLogResponse.dstIp
@@ -221,45 +303,104 @@ class FirewallVpnService : VpnService() {
                 return
             }
 
-            val udpPayload = NativeBridge.extractUdpPayload(packetData, length)
-            if (udpPayload == null) {
-                Log.e(
-                    "UDP_FORWARD",
-                    "Failed to extract UDP payload, length=$length, first bytes=${
-                        packetData.take(10).joinToString(",")
-                    }"
+            val udpPayload = NativeBridge.extractUdpPayload(packetData, length) ?: return
+
+            if (vpnInterface?.fileDescriptor?.valid() == true) {
+                protect(udpSocket)
+            } else {
+                Log.w("UDP_FORWARD", "VPN interface is null/closed — skipping protect()")
+            }
+
+            val address = InetAddress.getByName(dstIp)
+            val requestPacket = DatagramPacket(udpPayload, udpPayload.size, address, dstPort)
+            udpSocket?.send(requestPacket)
+
+            //receiving the response
+            val buffer = ByteArray(2048)
+            val responsePacket = DatagramPacket(buffer, buffer.size)
+            udpSocket?.soTimeout = 300
+
+            try {
+                udpSocket?.receive(responsePacket)
+
+                val responseData = buffer.copyOf(responsePacket.length)
+
+                val builtPacket = NativeBridge.buildUdpResponsePacket(
+                    responseData,
+                    responsePacket.address.hostAddress, // real server IP
+                    responsePacket.port,
+                    "10.0.0.2", // our VPN IP
+                    srcPort
                 )
-                return
+                vpnOutputStream.write(builtPacket)
+
+            } catch (_: SocketTimeoutException) {
+                Log.w("UDP_FORWARD", "No response received from $dstIp:$dstPort")
             }
         } catch (e: Exception) {
             Log.e("UDP_FORWARD", "Error forwarding UDP packet", e)
         }
     }
 
-    private fun launchUdpResponseListener(socket: DatagramSocket, srcPort: Int) {
+    private fun forwardTcpPacket(
+        packetData: ByteArray,
+        length: Int,
+        traffic: TrafficLogResponse,
+        vpnOutputStream: FileOutputStream
+    ) {
+        try {
+            val key = "${traffic.srcIp}:${traffic.srcPort}->${traffic.dstIp}:${traffic.dstPort}"
+
+            val tcpPayload = NativeBridge.extractTcpPayload(packetData, length) ?: return
+
+            val socket = tcpSocketMap.getOrPut(key) {
+                val s = Socket()
+                protect(s)
+                s.connect(InetSocketAddress(traffic.dstIp, traffic.dstPort), 1500)
+                startReadingFromSocketToVpn(s, traffic, vpnOutputStream)
+                s
+            }
+
+            socket.getOutputStream().write(tcpPayload)
+            socket.getOutputStream().flush()
+
+        } catch (e: Exception) {
+            Log.e("TCP_FORWARD", "Error forwarding TCP packet", e)
+        }
+    }
+
+    private fun startReadingFromSocketToVpn(
+        socket: Socket,
+        traffic: TrafficLogResponse,
+        vpnOutputStream: FileOutputStream
+    ) {
         vpnScope.launch {
-            val buffer = ByteArray(4096)
-            while (isActive) {
-                try {
-                    val responsePacket = DatagramPacket(buffer, buffer.size)
-                    socket.receive(responsePacket)
+            try {
+                val buffer = ByteArray(4096)
+                val input = socket.getInputStream()
 
-                    val responseData = responsePacket.data.copyOf(responsePacket.length)
+                while (true) {
+                    val bytesRead = input.read(buffer)
+                    if (bytesRead == -1) break
 
-                    val ipv4Packet = NativeBridge.buildIpv4UdpPacket(
-                        srcIp = responsePacket.address.hostAddress,
-                        dstIp = "10.0.0.2", // VPN TUN address
-                        srcPort = responsePacket.port,
-                        dstPort = srcPort,
-                        udpPayload = responseData
+                    val responseData = buffer.copyOf(bytesRead)
+
+                    val builtPacket = NativeBridge.buildTcpResponsePacket(
+                        responseData,
+                        socket.inetAddress.hostAddress,
+                        socket.port,
+                        "10.0.0.2", // your VPN IP
+                        traffic.srcPort
                     )
 
-                    val outputStream = FileOutputStream(vpnInterface?.fileDescriptor)
-                    outputStream.write(ipv4Packet)
-                } catch (e: Exception) {
-                    Log.e("UDP_RESPONSE", "Error receiving UDP response", e)
-                    break
+                    vpnOutputStream.write(builtPacket)
                 }
+            } catch (e: Exception) {
+                Log.e("TCP_STREAM", "Socket read error", e)
+            } finally {
+                socket.close()
+                val key = "${traffic.srcIp}:${traffic.srcPort}->${traffic.dstIp}:${traffic.dstPort}"
+                tcpSocketMap.remove(key)
             }
         }
     }

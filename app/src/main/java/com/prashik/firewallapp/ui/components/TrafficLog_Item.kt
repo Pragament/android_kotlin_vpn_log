@@ -15,11 +15,11 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.prashik.firewallapp.R
-import com.prashik.firewallapp.model.data.TrafficLogResponse
+import com.prashik.firewallapp.data.local.modal.BlockLogEntity
 
 @Composable
 fun TrafficLog_Item(
-    trafficLogResponse: TrafficLogResponse,
+    blockLogEntity: BlockLogEntity,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -36,28 +36,28 @@ fun TrafficLog_Item(
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             Custom_Bold_Text(
-                text = trafficLogResponse.appName
+                text = blockLogEntity.appName
             )
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Custom_Bold_Text(
-                    text = trafficLogResponse.protocolByte,
+                    text = blockLogEntity.protocol,
 
                     )
                 Text(
-                    text = trafficLogResponse.timeStamp,
+                    text = blockLogEntity.timestamp,
                     fontSize = 16.sp
                 )
             }
             Custom_Bold_Text(
                 unBoldText = "src  ",
-                text = "${trafficLogResponse.srcIp} (${trafficLogResponse.srcPort})"
+                text = "${blockLogEntity.srcIp} (${blockLogEntity.srcPort})"
             )
             Custom_Bold_Text(
                 unBoldText = "dst  ",
-                text = "${trafficLogResponse.dstIp} (${trafficLogResponse.dstPort})"
+                text = "${blockLogEntity.dstIp} (${blockLogEntity.dstPort})"
             )
         }
     }

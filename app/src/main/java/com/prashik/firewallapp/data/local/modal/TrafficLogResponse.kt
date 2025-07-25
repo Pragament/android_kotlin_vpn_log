@@ -1,4 +1,4 @@
-package com.prashik.firewallapp.model.data
+package com.prashik.firewallapp.data.local.modal
 
 data class TrafficLogResponse(
     var appName: String,
