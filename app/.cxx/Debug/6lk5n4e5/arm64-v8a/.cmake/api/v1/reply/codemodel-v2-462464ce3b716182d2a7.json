@@ -39,7 +39,7 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "firewallapp::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-firewallapp-Debug-e8d84a9544a19e1b1814.json",
+					"jsonFile" : "target-firewallapp-Debug-6d25e99e6b4c02d3d785.json",
 					"name" : "firewallapp",
 					"projectIndex" : 0
 				}
@@ -49,8 +49,8 @@
 	"kind" : "codemodel",
 	"paths" : 
 	{
-		"build" : "D:/Raj_parihar/work/Internship tasks/kt_app/app/.cxx/Debug/6lk5n4e5/arm64-v8a",
-		"source" : "D:/Raj_parihar/work/Internship tasks/kt_app/app/src/main/cpp"
+		"build" : "D:/Raj_parihar/work/Internship tasks/vpn_app/app/.cxx/Debug/6lk5n4e5/arm64-v8a",
+		"source" : "D:/Raj_parihar/work/Internship tasks/vpn_app/app/src/main/cpp"
 	},
 	"version" : 
 	{

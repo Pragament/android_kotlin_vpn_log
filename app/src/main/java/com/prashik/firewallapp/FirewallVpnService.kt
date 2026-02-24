@@ -156,17 +156,7 @@ class FirewallVpnService : VpnService() {
             .addDnsServer("8.8.8.8")
             .addDnsServer("8.8.4.4")
 
-        packageManager.getInstalledApplications(0).forEach { appInfo ->
-            if (blockedAppCache.value.contains(appInfo.packageName)) {
-                try {
-                    builder.addDisallowedApplication(appInfo.packageName)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            }
-        }
-        
-        // Allow this VPN app itself
+        // Exclude VPN app itself from using the VPN
         try {
             builder.addDisallowedApplication(packageName)
         } catch (e: Exception) {
@@ -242,23 +232,25 @@ class FirewallVpnService : VpnService() {
 
                         trafficLogResponse.appName = appName
 
+                        // Get the actual app's package name
+                        val sourcePackageName = uid?.let { UidResolver.getPackageNameFromUid(this, it) }
+
                         // Track unique addresses for this app
-                        packageName?.let { pkg ->
+                        sourcePackageName?.let { pkg ->
                             trackAppAddress(pkg, appName, trafficLogResponse)
                         }
 
                         // Check if specific address is blocked
-                        val isAddressBlocked = packageName?.let { pkg ->
+                        val isAddressBlocked = sourcePackageName?.let { pkg ->
                             isAddressBlockedForApp(pkg, trafficLogResponse.dstIp, trafficLogResponse.dstPort, trafficLogResponse.protocolByte)
                         } ?: false
 
                         // Check if app is blocked
-                        val packageName = uid?.let { UidResolver.getPackageNameFromUid(this, it) }
-                        val isAppBlocked = packageName?.let { blockedAppCache.value.contains(it) } ?: false
+                        val isAppBlocked = sourcePackageName?.let { blockedAppCache.value.contains(it) } ?: false
 
                         if (isAppBlocked || isAddressBlocked) {
                             // Log blocked packet but don't forward
-                            Log.d("VPN", "Blocking packet from $packageName - App blocked: $isAppBlocked, Address blocked: $isAddressBlocked")
+                            Log.d("VPN", "Blocking packet from $sourcePackageName - App blocked: $isAppBlocked, Address blocked: $isAddressBlocked")
                             if (!trafficLogResponse.appName.contains("Unknown")) {
                                 logBlockedPacket(trafficLogResponse)
                                 logDao.deleteExtraLogs()

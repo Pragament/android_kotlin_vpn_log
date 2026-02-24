@@ -1,3 +1,3 @@
-D:/Raj_parihar/work/Internship tasks/kt_app/app/.cxx/Debug/6lk5n4e5/arm64-v8a/CMakeFiles/firewallapp.dir
-D:/Raj_parihar/work/Internship tasks/kt_app/app/.cxx/Debug/6lk5n4e5/arm64-v8a/CMakeFiles/edit_cache.dir
-D:/Raj_parihar/work/Internship tasks/kt_app/app/.cxx/Debug/6lk5n4e5/arm64-v8a/CMakeFiles/rebuild_cache.dir
+D:/Raj_parihar/work/Internship tasks/vpn_app/app/.cxx/Debug/6lk5n4e5/arm64-v8a/CMakeFiles/firewallapp.dir
+D:/Raj_parihar/work/Internship tasks/vpn_app/app/.cxx/Debug/6lk5n4e5/arm64-v8a/CMakeFiles/edit_cache.dir
+D:/Raj_parihar/work/Internship tasks/vpn_app/app/.cxx/Debug/6lk5n4e5/arm64-v8a/CMakeFiles/rebuild_cache.dir

@@ -1,26 +1,26 @@
 {
   "buildFiles": [
-    "D:\\Raj_parihar\\work\\Internship tasks\\kt_app\\app\\src\\main\\cpp\\CMakeLists.txt"
+    "D:\\Raj_parihar\\work\\Internship tasks\\vpn_app\\app\\src\\main\\cpp\\CMakeLists.txt"
   ],
   "cleanCommandsComponents": [
     [
       "C:\\Users\\Raj Parihar\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
       "-C",
-      "D:\\Raj_parihar\\work\\Internship tasks\\kt_app\\app\\.cxx\\Debug\\6lk5n4e5\\arm64-v8a",
+      "D:\\Raj_parihar\\work\\Internship tasks\\vpn_app\\app\\.cxx\\Debug\\6lk5n4e5\\arm64-v8a",
       "clean"
     ]
   ],
   "buildTargetsCommandComponents": [
     "C:\\Users\\Raj Parihar\\AppData\\Local\\Android\\Sdk\\cmake\\3.22.1\\bin\\ninja.exe",
     "-C",
-    "D:\\Raj_parihar\\work\\Internship tasks\\kt_app\\app\\.cxx\\Debug\\6lk5n4e5\\arm64-v8a",
+    "D:\\Raj_parihar\\work\\Internship tasks\\vpn_app\\app\\.cxx\\Debug\\6lk5n4e5\\arm64-v8a",
     "{LIST_OF_TARGETS_TO_BUILD}"
   ],
   "libraries": {
     "firewallapp::@6890427a1f51a3e7e1df": {
       "artifactName": "firewallapp",
       "abi": "arm64-v8a",
-      "output": "D:\\Raj_parihar\\work\\Internship tasks\\kt_app\\app\\build\\intermediates\\cxx\\Debug\\6lk5n4e5\\obj\\arm64-v8a\\libfirewallapp.so",
+      "output": "D:\\Raj_parihar\\work\\Internship tasks\\vpn_app\\app\\build\\intermediates\\cxx\\Debug\\6lk5n4e5\\obj\\arm64-v8a\\libfirewallapp.so",
       "runtimeFiles": []
     }
   }

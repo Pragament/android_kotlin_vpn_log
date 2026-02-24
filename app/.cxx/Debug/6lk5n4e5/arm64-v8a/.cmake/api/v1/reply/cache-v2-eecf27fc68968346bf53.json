@@ -163,7 +163,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "d:/Raj_parihar/work/Internship tasks/kt_app/app/.cxx/Debug/6lk5n4e5/arm64-v8a"
+			"value" : "d:/Raj_parihar/work/Internship tasks/vpn_app/app/.cxx/Debug/6lk5n4e5/arm64-v8a"
 		},
 		{
 			"name" : "CMAKE_CACHE_MAJOR_VERSION",
@@ -683,7 +683,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "D:/Raj_parihar/work/Internship tasks/kt_app/app/src/main/cpp"
+			"value" : "D:/Raj_parihar/work/Internship tasks/vpn_app/app/src/main/cpp"
 		},
 		{
 			"name" : "CMAKE_INSTALL_PREFIX",
@@ -719,7 +719,7 @@
 				}
 			],
 			"type" : "UNINITIALIZED",
-			"value" : "D:\\Raj_parihar\\work\\Internship tasks\\kt_app\\app\\build\\intermediates\\cxx\\Debug\\6lk5n4e5\\obj\\arm64-v8a"
+			"value" : "D:\\Raj_parihar\\work\\Internship tasks\\vpn_app\\app\\build\\intermediates\\cxx\\Debug\\6lk5n4e5\\obj\\arm64-v8a"
 		},
 		{
 			"name" : "CMAKE_LINKER",
@@ -991,7 +991,7 @@
 				}
 			],
 			"type" : "UNINITIALIZED",
-			"value" : "D:\\Raj_parihar\\work\\Internship tasks\\kt_app\\app\\build\\intermediates\\cxx\\Debug\\6lk5n4e5\\obj\\arm64-v8a"
+			"value" : "D:\\Raj_parihar\\work\\Internship tasks\\vpn_app\\app\\build\\intermediates\\cxx\\Debug\\6lk5n4e5\\obj\\arm64-v8a"
 		},
 		{
 			"name" : "CMAKE_SHARED_LINKER_FLAGS",
@@ -1231,11 +1231,11 @@
 			[
 				{
 					"name" : "HELPSTRING",
-					"value" : "No help, variable specified on the command line."
+					"value" : "The CMake toolchain file"
 				}
 			],
-			"type" : "UNINITIALIZED",
-			"value" : "C:\\Users\\Raj Parihar\\AppData\\Local\\Android\\Sdk\\ndk\\27.0.12077973\\build\\cmake\\android.toolchain.cmake"
+			"type" : "FILEPATH",
+			"value" : "C:/Users/Raj Parihar/AppData/Local/Android/Sdk/ndk/27.0.12077973/build/cmake/android.toolchain.cmake"
 		},
 		{
 			"name" : "CMAKE_VERBOSE_MAKEFILE",
@@ -1275,7 +1275,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "D:/Raj_parihar/work/Internship tasks/kt_app/app/.cxx/Debug/6lk5n4e5/arm64-v8a"
+			"value" : "D:/Raj_parihar/work/Internship tasks/vpn_app/app/.cxx/Debug/6lk5n4e5/arm64-v8a"
 		},
 		{
 			"name" : "firewallapp_IS_TOP_LEVEL",
@@ -1299,7 +1299,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "D:/Raj_parihar/work/Internship tasks/kt_app/app/src/main/cpp"
+			"value" : "D:/Raj_parihar/work/Internship tasks/vpn_app/app/src/main/cpp"
 		},
 		{
 			"name" : "log-lib",
